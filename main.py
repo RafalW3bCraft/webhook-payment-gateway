@@ -5,6 +5,7 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
+    """Health check endpoint for Render"""
     return {"status": "alive"}
 
 
@@ -13,7 +14,10 @@ def read_root():
 # -----------------------------
 @app.post("/webhook/tron")
 async def webhook_tron(request: Request):
-    payload = await request.json()
+    try:
+        payload = await request.json()
+    except Exception:
+        payload = {"error": "Invalid JSON"}
     print("⚡ TRON webhook received:", payload)
     return {"status": "received"}
 
@@ -23,7 +27,10 @@ async def webhook_tron(request: Request):
 # -----------------------------
 @app.post("/webhook/btc")
 async def webhook_btc(request: Request):
-    payload = await request.json()
+    try:
+        payload = await request.json()
+    except Exception:
+        payload = {"error": "Invalid JSON"}
     print("⚡ BTC webhook received:", payload)
     return {"status": "received"}
 
@@ -32,14 +39,18 @@ async def webhook_btc(request: Request):
 # 🔹 Stripe Webhook (No Secret)
 # -----------------------------
 @app.get("/webhook/stripe")
-def stripe_webhook_get():
-    return {"status": "waiting for POST"}
+def stripe_webhook_check():
+    """Allow GET so you can open in a browser and check it's alive"""
+    return {"status": "Stripe webhook endpoint is ready (POST required)"}
+
 
 @app.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
-    try:
-        payload = await request.json()
-    except Exception as e:
-        return {"error": str(e)}
-    print("⚡ Stripe webhook received:", payload)
+    # Stripe sends raw bytes, not always JSON
+    payload = await request.body()
+    payload_str = payload.decode("utf-8")
+
+    print("⚡ Stripe webhook raw payload:", payload_str)
+
+    # Always return 200 OK so Stripe knows we received it
     return {"status": "received"}
