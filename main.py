@@ -31,8 +31,15 @@ async def webhook_btc(request: Request):
 # -----------------------------
 # 🔹 Stripe Webhook (No Secret)
 # -----------------------------
+@app.get("/webhook/stripe")
+def stripe_webhook_get():
+    return {"status": "waiting for POST"}
+
 @app.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
-    payload = await request.json()
+    try:
+        payload = await request.json()
+    except Exception as e:
+        return {"error": str(e)}
     print("⚡ Stripe webhook received:", payload)
     return {"status": "received"}
